@@ -15,8 +15,6 @@ import {
 import {
   buildHistogram,
   fetchSurveySnapshot,
-  predictLinearScore,
-  predictLogisticProbability,
   predictionFields,
   simulateSampleMeans,
   type DistributionDatum,
@@ -25,6 +23,8 @@ import {
   type PredictionInput,
   type SurveySnapshot,
 } from "./lib/soch-data";
+import { runFrontendInference } from "../frontend_integration/modelInference";
+import type { FrontendInferenceResult } from "../frontend_integration/modelTypes";
 
 type ProbabilityCard = {
   label: string;
@@ -47,7 +47,7 @@ const sectionLinks = [
   { label: "Probability", path: "/", hash: "#probability" },
   { label: "CLT", path: "/clt", hash: "#clt" },
   { label: "Models", path: "/models", hash: "#models" },
-  { label: "Sandbox", path: "/sandbox", hash: "#sandbox" },
+  { label: "Predict", path: "/sandbox", hash: "#sandbox" },
 ] as const;
 
 const numberFormatter = new Intl.NumberFormat("en-US");
@@ -71,7 +71,6 @@ export default function App() {
   const [sampleSize, setSampleSize] = useState(8);
   const [simulationCount, setSimulationCount] = useState(180);
   const [simulationHistogram, setSimulationHistogram] = useState<HistogramDatum[]>([]);
-  const [riskThreshold, setRiskThreshold] = useState(0.5);
   const [predictionInput, setPredictionInput] = useState<PredictionInput>({
     dailyHours: 2,
     checkingFrequency: 2,
@@ -82,6 +81,10 @@ export default function App() {
     socialMediaIntensity: 3,
     reductionIntent: 3,
   });
+  const [submittedPredictionInput, setSubmittedPredictionInput] = useState<PredictionInput | null>(
+    null,
+  );
+  const [predictionDirty, setPredictionDirty] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,6 +103,8 @@ export default function App() {
         startTransition(() => {
           setSnapshot(nextSnapshot);
           setPredictionInput(nextSnapshot.defaultPredictionInput);
+          setSubmittedPredictionInput(null);
+          setPredictionDirty(false);
           setLoadState("ready");
         });
       } catch (error) {
@@ -186,101 +191,21 @@ export default function App() {
     .sort((left, right) => Math.abs(right.value) - Math.abs(left.value))
     .slice(0, 5);
 
-  const predictedScore = predictLinearScore(snapshot.regression.linear, predictionInput);
-  const predictedProbability = predictLogisticProbability(
-    snapshot.regression.logistic,
-    predictionInput,
-  );
-  const predictedBand =
-    predictedProbability >= 0.64
-      ? "High-use risk"
-      : predictedProbability >= 0.38
-        ? "Elevated use"
-        : "Steady use";
-  const thresholdDecision =
-    predictedProbability >= riskThreshold ? "Above threshold" : "Below threshold";
-  const thresholdGap = predictedProbability - riskThreshold;
-  const scoreDelta = predictedScore - snapshot.descriptiveStats.mean;
-  const modelRows = snapshot.rows.filter(
-    (row): row is (typeof snapshot.rows)[number] & { modelFeatures: PredictionInput } =>
-      row.modelFeatures !== null,
-  );
-  const sandboxPresets: Array<{ label: string; input: PredictionInput }> = [
-    { label: "Dataset default", input: snapshot.defaultPredictionInput },
-    {
-      label: "Balanced",
-      input: {
-        dailyHours: 2,
-        checkingFrequency: 2,
-        beforeSleep: 2,
-        anxiousWithoutPhone: 0,
-        studyDistraction: 2,
-        wasteTime: 1,
-        socialMediaIntensity: 2,
-        reductionIntent: 3,
-      },
-    },
-    {
-      label: "Heavy scroll",
-      input: {
-        dailyHours: 4,
-        checkingFrequency: 4,
-        beforeSleep: 3,
-        anxiousWithoutPhone: 2,
-        studyDistraction: 4,
-        wasteTime: 2,
-        socialMediaIntensity: 5,
-        reductionIntent: 4,
-      },
-    },
-    {
-      label: "Study mode",
-      input: {
-        dailyHours: 2,
-        checkingFrequency: 1,
-        beforeSleep: 1,
-        anxiousWithoutPhone: 0,
-        studyDistraction: 1,
-        wasteTime: 0,
-        socialMediaIntensity: 2,
-        reductionIntent: 4,
-      },
-    },
-    {
-      label: "Night habit",
-      input: {
-        dailyHours: 3,
-        checkingFrequency: 3,
-        beforeSleep: 3,
-        anxiousWithoutPhone: 1,
-        studyDistraction: 3,
-        wasteTime: 2,
-        socialMediaIntensity: 4,
-        reductionIntent: 3,
-      },
-    },
-  ];
-
-  const applyPredictionInput = (nextInput: PredictionInput) => {
-    setPredictionInput({ ...nextInput });
-  };
-
-  const applyRandomProfile = () => {
-    if (modelRows.length === 0) {
-      return;
-    }
-
-    const randomProfile =
-      modelRows[Math.floor(Math.random() * modelRows.length)]?.modelFeatures ??
-      snapshot.defaultPredictionInput;
-    applyPredictionInput(randomProfile);
-  };
+  const predictionResult = submittedPredictionInput
+    ? runFrontendInference(submittedPredictionInput)
+    : null;
 
   const setPredictionField = (field: keyof PredictionInput, value: number) => {
     setPredictionInput((current) => ({
       ...current,
       [field]: value,
     }));
+    setPredictionDirty(true);
+  };
+
+  const submitPrediction = () => {
+    setSubmittedPredictionInput({ ...predictionInput });
+    setPredictionDirty(false);
   };
 
   return (
@@ -330,19 +255,12 @@ export default function App() {
             path="/sandbox"
             element={
               <SandboxPage
-                predictedBand={predictedBand}
-                predictedProbability={predictedProbability}
-                predictedScore={predictedScore}
+                predictionResult={predictionResult}
                 predictionInput={predictionInput}
-                probabilityThreshold={riskThreshold}
-                scoreDelta={scoreDelta}
                 setPredictionField={setPredictionField}
-                setRiskThreshold={setRiskThreshold}
-                thresholdDecision={thresholdDecision}
-                thresholdGap={thresholdGap}
-                sandboxPresets={sandboxPresets}
-                applyPredictionInput={applyPredictionInput}
-                applyRandomProfile={applyRandomProfile}
+                submitPrediction={submitPrediction}
+                predictionDirty={predictionDirty}
+                modelAccuracy={snapshot.regression.logistic.accuracy}
               />
             }
           />
@@ -609,6 +527,14 @@ function ModelsPage({
             metrics={[
               { label: "Rows", value: numberFormatter.format(snapshot.regression.linear.sampleSize) },
               { label: "R²", value: snapshot.regression.linear.r2.toFixed(3) },
+              {
+                label: "MAE",
+                value: decimalFormatter.format(snapshot.regression.linear.mae ?? 0),
+              },
+              {
+                label: "RMSE",
+                value: decimalFormatter.format(snapshot.regression.linear.rmse ?? 0),
+              },
             ]}
             coefficients={strongestLinear}
           />
@@ -627,6 +553,14 @@ function ModelsPage({
                 label: "Accuracy",
                 value: percentFormatter.format(snapshot.regression.logistic.accuracy),
               },
+              {
+                label: "F1",
+                value: (snapshot.regression.logistic.f1 ?? 0).toFixed(3),
+              },
+              {
+                label: "ROC/AUC",
+                value: (snapshot.regression.logistic.rocAuc ?? 0).toFixed(3),
+              },
             ]}
             coefficients={strongestLogistic}
             dark
@@ -639,41 +573,29 @@ function ModelsPage({
 }
 
 function SandboxPage({
+  predictionResult,
   predictionInput,
   setPredictionField,
-  predictedScore,
-  predictedProbability,
-  predictedBand,
-  probabilityThreshold,
-  setRiskThreshold,
-  thresholdDecision,
-  thresholdGap,
-  scoreDelta,
-  sandboxPresets,
-  applyPredictionInput,
-  applyRandomProfile,
+  submitPrediction,
+  predictionDirty,
+  modelAccuracy,
 }: {
+  predictionResult: FrontendInferenceResult | null;
   predictionInput: PredictionInput;
   setPredictionField: (field: keyof PredictionInput, value: number) => void;
-  predictedScore: number;
-  predictedProbability: number;
-  predictedBand: string;
-  probabilityThreshold: number;
-  setRiskThreshold: (value: number) => void;
-  thresholdDecision: string;
-  thresholdGap: number;
-  scoreDelta: number;
-  sandboxPresets: Array<{ label: string; input: PredictionInput }>;
-  applyPredictionInput: (nextInput: PredictionInput) => void;
-  applyRandomProfile: () => void;
+  submitPrediction: () => void;
+  predictionDirty: boolean;
+  modelAccuracy: number;
 }) {
+  const topDrivers = predictionResult ? summarizeTopDrivers(predictionResult) : null;
+
   return (
     <main className="dashboard-page">
       <DashboardSection
         id="sandbox"
-        kicker="Sandbox"
-        title="Test, compare, and stress the model"
-        summary="Presets, manual inputs, threshold testing, and random profiles all live here."
+        kicker="Single Prediction"
+        title="Enter one student profile and click Predict"
+        summary="Choose the survey-style values for one student and the frontend will run the exported models directly in the browser."
         className="dashboard-section-advanced dashboard-section-sandbox"
       >
         <div className="dashboard-grid dashboard-grid-sandbox">
@@ -683,48 +605,91 @@ function SandboxPage({
               <h3>Prediction result</h3>
             </div>
 
-            <div className="result-grid">
-              <ResultTile
-                label="Predicted score"
-                value={decimalFormatter.format(predictedScore)}
-                helper="Linear output"
-              />
-              <ResultTile
-                label="Probability"
-                value={percentFormatter.format(predictedProbability)}
-                helper="Logistic output"
-              />
-              <ResultTile label="Band" value={predictedBand} helper="Class label" />
-            </div>
+            {predictionResult ? (
+              <>
+                <div className="result-grid result-grid-prediction">
+                  <ResultTile
+                    label="Addiction score"
+                    value={decimalFormatter.format(predictionResult.addictionScore)}
+                    helper="Predicted score"
+                  />
+                  <ResultTile
+                    label="Probability"
+                    value={percentFormatter.format(predictionResult.addictionProbability)}
+                    helper="Estimated risk"
+                  />
+                  <ResultTile
+                    label="Class label"
+                    value={predictionResult.classLabel}
+                    helper="Final output"
+                  />
+                </div>
 
-            <div className="metric-line-grid top-gap-tight">
-              <div className="formula-strip">
-                <span>Threshold view</span>
-                <strong>{thresholdDecision}</strong>
-              </div>
-              <div className="formula-strip">
-                <span>Vs class mean</span>
-                <strong>
-                  {scoreDelta >= 0 ? "+" : ""}
-                  {decimalFormatter.format(scoreDelta)}
-                </strong>
-              </div>
-            </div>
+                <div className="insight-panel">
+                  <span className="card-kicker">Short explanation</span>
+                  <p className="insight-copy">{predictionResult.interpretation}</p>
+                  {topDrivers ? (
+                    <p className="prediction-footnote">Main drivers: {topDrivers}.</p>
+                  ) : null}
+                </div>
 
-            <p className="card-summary">
-              Change presets, move the threshold, or edit each feature manually to see the result
-              shift live.
-            </p>
-            <div className="card-formula">ŷ = β0 + Σβixi,  p = 1 / (1 + e^-z)</div>
+                {predictionResult.warnings.length > 0 ? (
+                  <div className="note-card note-card-warning">
+                    <span className="card-kicker">Input warnings</span>
+                    <ul className="note-list">
+                      {predictionResult.warnings.map((warning) => (
+                        <li key={warning}>{warning}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <div className="note-card">
+                  <span className="card-kicker">Model note</span>
+                  <p>
+                    Risk model test accuracy: {percentFormatter.format(modelAccuracy)}.{" "}
+                    {predictionResult.note}
+                  </p>
+                </div>
+
+                {predictionDirty ? (
+                  <p className="card-summary">
+                    Inputs changed. Click <strong>Predict</strong> again to refresh the result.
+                  </p>
+                ) : (
+                  <p className="card-summary">
+                    This result uses the last values sent into the exported browser model.
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="prediction-placeholder">
+                <span className="card-kicker">Ready</span>
+                <h4>Choose the values and click Predict</h4>
+                <p>
+                  The prediction will show a score, probability, class label, and short
+                  explanation for one student profile.
+                </p>
+                <p className="prediction-footnote">
+                  Risk model test accuracy: {percentFormatter.format(modelAccuracy)}.
+                </p>
+              </div>
+            )}
           </article>
 
-          <div className="dashboard-stack">
-            <article className="card">
-              <div className="card-head">
-                <span className="card-kicker">Inputs</span>
-                <h3>Behaviour controls</h3>
-              </div>
+          <article className="card">
+            <div className="card-head">
+              <span className="card-kicker">Inputs</span>
+              <h3>Student behavior profile</h3>
+            </div>
 
+            <form
+              className="prediction-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitPrediction();
+              }}
+            >
               <div className="field-grid">
                 {predictionFields.map((field) => (
                   <PredictionField
@@ -735,57 +700,17 @@ function SandboxPage({
                   />
                 ))}
               </div>
-            </article>
 
-            <article className="card">
-              <div className="card-head">
-                <span className="card-kicker">Extra sandboxes</span>
-                <h3>Presets and threshold tester</h3>
-              </div>
-
-              <div className="preset-row">
-                {sandboxPresets.map((preset) => (
-                  <button
-                    className="preset-button"
-                    key={preset.label}
-                    type="button"
-                    onClick={() => applyPredictionInput(preset.input)}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-                <button
-                  className="preset-button preset-button-ghost"
-                  type="button"
-                  onClick={applyRandomProfile}
-                >
-                  Random row
+              <div className="prediction-actions">
+                <button className="predict-button" type="submit">
+                  Predict
                 </button>
+                <p className="prediction-status">
+                  Prediction runs only when you click the button.
+                </p>
               </div>
-
-              <SliderField
-                label="Risk threshold"
-                value={Number(probabilityThreshold.toFixed(2))}
-                min={0.2}
-                max={0.8}
-                step={0.02}
-                onChange={setRiskThreshold}
-              />
-
-              <div className="mini-metric-grid mini-metric-grid-compact">
-                <MiniMetric label="Threshold" value={probabilityThreshold.toFixed(2)} />
-                <MiniMetric
-                  label="Gap"
-                  value={`${thresholdGap >= 0 ? "+" : ""}${thresholdGap.toFixed(2)}`}
-                />
-                <MiniMetric
-                  label="Score delta"
-                  value={`${scoreDelta >= 0 ? "+" : ""}${decimalFormatter.format(scoreDelta)}`}
-                />
-                <MiniMetric label="Decision" value={thresholdDecision} />
-              </div>
-            </article>
-          </div>
+            </form>
+          </article>
         </div>
       </DashboardSection>
     </main>
@@ -806,7 +731,7 @@ function AppChrome({
       : location.pathname === "/models"
         ? "Model view"
         : location.pathname === "/sandbox"
-          ? "Sandbox"
+          ? "Single prediction"
           : "Live phone usage dashboard";
 
   return (
@@ -1220,6 +1145,7 @@ function PredictionField({
           </option>
         ))}
       </select>
+      <small>{field.helper}</small>
     </label>
   );
 }
@@ -1273,6 +1199,22 @@ function ResultTile({
       <small>{helper}</small>
     </article>
   );
+}
+
+function summarizeTopDrivers(predictionResult: FrontendInferenceResult): string | null {
+  const labels = predictionResult.topPositiveContributors
+    .slice(0, 2)
+    .map((signal) => signal.label.trim());
+
+  if (labels.length === 0) {
+    return null;
+  }
+
+  if (labels.length === 1) {
+    return labels[0];
+  }
+
+  return `${labels[0]} and ${labels[1]}`;
 }
 
 function ChartTooltip({

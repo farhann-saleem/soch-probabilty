@@ -1,0 +1,652 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-04-27T08:44:33.574876+00:00",
+  "dataset": {
+    "source": "/home/farhann-saleem/Desktop/github/university/FSP/P-S/data/raw/soch_survey_snapshot.csv",
+    "source_type": "csv",
+    "raw_row_count": 52,
+    "clean_row_count": 51,
+    "malformed_row_count": 1,
+    "model_row_count": 51,
+    "dropped_response_ids": [
+      "R028"
+    ]
+  },
+  "feature_order": [
+    "dailyHours",
+    "checkingFrequency",
+    "beforeSleep",
+    "anxiousWithoutPhone",
+    "studyDistraction",
+    "wasteTime",
+    "socialMediaIntensity",
+    "reductionIntent"
+  ],
+  "python_feature_order": [
+    "daily_hours",
+    "checking_frequency",
+    "before_sleep",
+    "anxious_without_phone",
+    "study_distraction",
+    "waste_time",
+    "social_media_intensity",
+    "reduction_intent"
+  ],
+  "targets": {
+    "addiction_score": {
+      "type": "continuous",
+      "range": [
+        0,
+        100
+      ],
+      "description": "A weighted, interpretable educational score derived from high-signal survey behaviors such as usage duration, checking frequency, study distraction, sleep impact, and compulsion-related items."
+    },
+    "addiction_risk": {
+      "type": "binary",
+      "primary_threshold": 60.0,
+      "support_window_start": 55.0,
+      "supportive_self_report_labels": [
+        "Yes",
+        "Maybe"
+      ],
+      "labels": {
+        "0": "Lower addiction risk",
+        "1": "Elevated addiction risk"
+      },
+      "description": "The binary label is derived primarily from the addiction score threshold and is only supported by self-reported addiction when the score falls in the borderline band."
+    }
+  },
+  "models": {
+    "linear_regression": {
+      "model_type": "LinearRegression",
+      "intercept": -21.699244,
+      "coefficients": {
+        "dailyHours": 5.48964,
+        "checkingFrequency": 5.359185,
+        "beforeSleep": 5.686827,
+        "anxiousWithoutPhone": 5.531434,
+        "studyDistraction": 5.553173,
+        "wasteTime": 3.933878,
+        "socialMediaIntensity": 0.975851,
+        "reductionIntent": 2.148836
+      },
+      "coefficient_items": [
+        {
+          "key": "dailyHours",
+          "python_key": "daily_hours",
+          "label": "Daily phone usage",
+          "value": 5.48964
+        },
+        {
+          "key": "checkingFrequency",
+          "python_key": "checking_frequency",
+          "label": "Checking frequency",
+          "value": 5.359185
+        },
+        {
+          "key": "beforeSleep",
+          "python_key": "before_sleep",
+          "label": "Before-sleep use",
+          "value": 5.686827
+        },
+        {
+          "key": "anxiousWithoutPhone",
+          "python_key": "anxious_without_phone",
+          "label": "Anxiety without phone",
+          "value": 5.531434
+        },
+        {
+          "key": "studyDistraction",
+          "python_key": "study_distraction",
+          "label": "Study distraction",
+          "value": 5.553173
+        },
+        {
+          "key": "wasteTime",
+          "python_key": "waste_time",
+          "label": "Feels like wasted time",
+          "value": 3.933878
+        },
+        {
+          "key": "socialMediaIntensity",
+          "python_key": "social_media_intensity",
+          "label": "Social media intensity",
+          "value": 0.975851
+        },
+        {
+          "key": "reductionIntent",
+          "python_key": "reduction_intent",
+          "label": "Reduction intent",
+          "value": 2.148836
+        }
+      ],
+      "metrics": {
+        "sample_size": 51,
+        "train_size": 38,
+        "test_size": 13,
+        "intercept": -21.699244,
+        "r2": 0.923715,
+        "mae": 4.129756,
+        "rmse": 4.840917
+      },
+      "test_predictions": [
+        {
+          "response_id": "R021",
+          "actual_score": 51.7,
+          "predicted_score": 53.793399
+        },
+        {
+          "response_id": "R001",
+          "actual_score": 80.1,
+          "predicted_score": 83.158693
+        },
+        {
+          "response_id": "R025",
+          "actual_score": 42.1,
+          "predicted_score": 44.869182
+        },
+        {
+          "response_id": "R020",
+          "actual_score": 50.7,
+          "predicted_score": 61.293573
+        },
+        {
+          "response_id": "R035",
+          "actual_score": 53.8,
+          "predicted_score": 59.123054
+        },
+        {
+          "response_id": "R051",
+          "actual_score": 81.7,
+          "predicted_score": 88.056733
+        },
+        {
+          "response_id": "R048",
+          "actual_score": 59.1,
+          "predicted_score": 54.211574
+        },
+        {
+          "response_id": "R037",
+          "actual_score": 90.8,
+          "predicted_score": 86.990567
+        },
+        {
+          "response_id": "R017",
+          "actual_score": 98.6,
+          "predicted_score": 95.391695
+        },
+        {
+          "response_id": "R031",
+          "actual_score": 44.2,
+          "predicted_score": 46.804598
+        },
+        {
+          "response_id": "R009",
+          "actual_score": 74.4,
+          "predicted_score": 76.217459
+        },
+        {
+          "response_id": "R002",
+          "actual_score": 75.5,
+          "predicted_score": 74.903404
+        },
+        {
+          "response_id": "R040",
+          "actual_score": 60.5,
+          "predicted_score": 67.067378
+        }
+      ],
+      "score_range": [
+        0.0,
+        100.0
+      ]
+    },
+    "logistic_regression": {
+      "model_type": "LogisticRegression",
+      "intercept": -15.155123,
+      "coefficients": {
+        "dailyHours": 0.835378,
+        "checkingFrequency": 0.605863,
+        "beforeSleep": 1.41536,
+        "anxiousWithoutPhone": 1.222479,
+        "studyDistraction": 0.58289,
+        "wasteTime": 0.353576,
+        "socialMediaIntensity": 0.30476,
+        "reductionIntent": 0.956338
+      },
+      "coefficient_items": [
+        {
+          "key": "dailyHours",
+          "python_key": "daily_hours",
+          "label": "Daily phone usage",
+          "value": 0.835378
+        },
+        {
+          "key": "checkingFrequency",
+          "python_key": "checking_frequency",
+          "label": "Checking frequency",
+          "value": 0.605863
+        },
+        {
+          "key": "beforeSleep",
+          "python_key": "before_sleep",
+          "label": "Before-sleep use",
+          "value": 1.41536
+        },
+        {
+          "key": "anxiousWithoutPhone",
+          "python_key": "anxious_without_phone",
+          "label": "Anxiety without phone",
+          "value": 1.222479
+        },
+        {
+          "key": "studyDistraction",
+          "python_key": "study_distraction",
+          "label": "Study distraction",
+          "value": 0.58289
+        },
+        {
+          "key": "wasteTime",
+          "python_key": "waste_time",
+          "label": "Feels like wasted time",
+          "value": 0.353576
+        },
+        {
+          "key": "socialMediaIntensity",
+          "python_key": "social_media_intensity",
+          "label": "Social media intensity",
+          "value": 0.30476
+        },
+        {
+          "key": "reductionIntent",
+          "python_key": "reduction_intent",
+          "label": "Reduction intent",
+          "value": 0.956338
+        }
+      ],
+      "metrics": {
+        "sample_size": 51,
+        "train_size": 38,
+        "test_size": 13,
+        "accuracy": 0.769231,
+        "precision": 0.777778,
+        "recall": 0.875,
+        "f1": 0.823529,
+        "roc_auc": 0.925,
+        "confusion_matrix": [
+          [
+            3,
+            2
+          ],
+          [
+            1,
+            7
+          ]
+        ],
+        "intercept": -15.155123
+      },
+      "class_labels": {
+        "0": "Lower addiction risk",
+        "1": "Elevated addiction risk"
+      },
+      "probability_threshold": 0.5,
+      "test_predictions": [
+        {
+          "response_id": "R021",
+          "actual_class": 0,
+          "predicted_probability": 0.361062,
+          "predicted_class": 0
+        },
+        {
+          "response_id": "R001",
+          "actual_class": 1,
+          "predicted_probability": 0.989015,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R025",
+          "actual_class": 0,
+          "predicted_probability": 0.044846,
+          "predicted_class": 0
+        },
+        {
+          "response_id": "R020",
+          "actual_class": 0,
+          "predicted_probability": 0.29992,
+          "predicted_class": 0
+        },
+        {
+          "response_id": "R035",
+          "actual_class": 0,
+          "predicted_probability": 0.877428,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R051",
+          "actual_class": 1,
+          "predicted_probability": 0.991425,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R048",
+          "actual_class": 1,
+          "predicted_probability": 0.380217,
+          "predicted_class": 0
+        },
+        {
+          "response_id": "R037",
+          "actual_class": 1,
+          "predicted_probability": 0.981373,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R017",
+          "actual_class": 1,
+          "predicted_probability": 0.99806,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R031",
+          "actual_class": 0,
+          "predicted_probability": 0.501186,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R009",
+          "actual_class": 1,
+          "predicted_probability": 0.932352,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R002",
+          "actual_class": 1,
+          "predicted_probability": 0.776048,
+          "predicted_class": 1
+        },
+        {
+          "response_id": "R040",
+          "actual_class": 1,
+          "predicted_probability": 0.914552,
+          "predicted_class": 1
+        }
+      ]
+    }
+  },
+  "validation_cases": [
+    {
+      "case_id": "dataset_default",
+      "label": "Dataset default",
+      "input": {
+        "dailyHours": 3,
+        "checkingFrequency": 2,
+        "beforeSleep": 3,
+        "anxiousWithoutPhone": 1,
+        "studyDistraction": 3,
+        "wasteTime": 1,
+        "socialMediaIntensity": 4,
+        "reductionIntent": 4
+      },
+      "warnings": [],
+      "expected": {
+        "addiction_score": 61.172106,
+        "addiction_probability": 0.764576,
+        "risk_class": 1,
+        "risk_label": "Elevated addiction risk",
+        "top_positive_contributors": [
+          {
+            "feature": "beforeSleep",
+            "coefficient": 1.41536,
+            "value": 3.0,
+            "contribution": 4.24608
+          },
+          {
+            "feature": "reductionIntent",
+            "coefficient": 0.956338,
+            "value": 4.0,
+            "contribution": 3.825352
+          },
+          {
+            "feature": "dailyHours",
+            "coefficient": 0.835378,
+            "value": 3.0,
+            "contribution": 2.506134
+          }
+        ],
+        "top_negative_contributors": []
+      }
+    },
+    {
+      "case_id": "balanced_student",
+      "label": "Balanced student",
+      "input": {
+        "dailyHours": 2,
+        "checkingFrequency": 2,
+        "beforeSleep": 1,
+        "anxiousWithoutPhone": 1,
+        "studyDistraction": 2,
+        "wasteTime": 1,
+        "socialMediaIntensity": 3,
+        "reductionIntent": 4
+      },
+      "warnings": [],
+      "expected": {
+        "addiction_score": 37.779788,
+        "addiction_probability": 0.03306,
+        "risk_class": 0,
+        "risk_label": "Lower addiction risk",
+        "top_positive_contributors": [
+          {
+            "feature": "reductionIntent",
+            "coefficient": 0.956338,
+            "value": 4.0,
+            "contribution": 3.825352
+          },
+          {
+            "feature": "dailyHours",
+            "coefficient": 0.835378,
+            "value": 2.0,
+            "contribution": 1.670756
+          },
+          {
+            "feature": "beforeSleep",
+            "coefficient": 1.41536,
+            "value": 1.0,
+            "contribution": 1.41536
+          }
+        ],
+        "top_negative_contributors": []
+      }
+    },
+    {
+      "case_id": "heavy_scroll",
+      "label": "Heavy scroll",
+      "input": {
+        "dailyHours": 4,
+        "checkingFrequency": 4,
+        "beforeSleep": 3,
+        "anxiousWithoutPhone": 2,
+        "studyDistraction": 4,
+        "wasteTime": 2,
+        "socialMediaIntensity": 5,
+        "reductionIntent": 5
+      },
+      "warnings": [],
+      "expected": {
+        "addiction_score": 95.523288,
+        "addiction_probability": 0.998701,
+        "risk_class": 1,
+        "risk_label": "Elevated addiction risk",
+        "top_positive_contributors": [
+          {
+            "feature": "reductionIntent",
+            "coefficient": 0.956338,
+            "value": 5.0,
+            "contribution": 4.78169
+          },
+          {
+            "feature": "beforeSleep",
+            "coefficient": 1.41536,
+            "value": 3.0,
+            "contribution": 4.24608
+          },
+          {
+            "feature": "dailyHours",
+            "coefficient": 0.835378,
+            "value": 4.0,
+            "contribution": 3.341512
+          }
+        ],
+        "top_negative_contributors": []
+      }
+    },
+    {
+      "case_id": "study_mode",
+      "label": "Study mode",
+      "input": {
+        "dailyHours": 1,
+        "checkingFrequency": 1,
+        "beforeSleep": 1,
+        "anxiousWithoutPhone": 0,
+        "studyDistraction": 1,
+        "wasteTime": 0,
+        "socialMediaIntensity": 2,
+        "reductionIntent": 4
+      },
+      "warnings": [],
+      "expected": {
+        "addiction_score": 10.936627,
+        "addiction_probability": 0.000688,
+        "risk_class": 0,
+        "risk_label": "Lower addiction risk",
+        "top_positive_contributors": [
+          {
+            "feature": "reductionIntent",
+            "coefficient": 0.956338,
+            "value": 4.0,
+            "contribution": 3.825352
+          },
+          {
+            "feature": "beforeSleep",
+            "coefficient": 1.41536,
+            "value": 1.0,
+            "contribution": 1.41536
+          },
+          {
+            "feature": "dailyHours",
+            "coefficient": 0.835378,
+            "value": 1.0,
+            "contribution": 0.835378
+          }
+        ],
+        "top_negative_contributors": []
+      }
+    },
+    {
+      "case_id": "night_habit",
+      "label": "Night habit",
+      "input": {
+        "dailyHours": 3,
+        "checkingFrequency": 3,
+        "beforeSleep": 3,
+        "anxiousWithoutPhone": 1,
+        "studyDistraction": 3,
+        "wasteTime": 2,
+        "socialMediaIntensity": 4,
+        "reductionIntent": 4
+      },
+      "warnings": [],
+      "expected": {
+        "addiction_score": 70.465169,
+        "addiction_probability": 0.894483,
+        "risk_class": 1,
+        "risk_label": "Elevated addiction risk",
+        "top_positive_contributors": [
+          {
+            "feature": "beforeSleep",
+            "coefficient": 1.41536,
+            "value": 3.0,
+            "contribution": 4.24608
+          },
+          {
+            "feature": "reductionIntent",
+            "coefficient": 0.956338,
+            "value": 4.0,
+            "contribution": 3.825352
+          },
+          {
+            "feature": "dailyHours",
+            "coefficient": 0.835378,
+            "value": 3.0,
+            "contribution": 2.506134
+          }
+        ],
+        "top_negative_contributors": []
+      }
+    },
+    {
+      "case_id": "dataset_row_r001",
+      "label": "Dataset sample R001",
+      "input": {
+        "dailyHours": 4,
+        "checkingFrequency": 4,
+        "beforeSleep": 3,
+        "anxiousWithoutPhone": 1,
+        "studyDistraction": 3,
+        "wasteTime": 2,
+        "socialMediaIntensity": 5,
+        "reductionIntent": 4
+      },
+      "expected": {
+        "addiction_score": 82.289845,
+        "addiction_probability": 0.979834,
+        "risk_class": 1,
+        "risk_label": "Elevated addiction risk"
+      }
+    },
+    {
+      "case_id": "dataset_row_r002",
+      "label": "Dataset sample R002",
+      "input": {
+        "dailyHours": 4,
+        "checkingFrequency": 4,
+        "beforeSleep": 3,
+        "anxiousWithoutPhone": 0,
+        "studyDistraction": 4,
+        "wasteTime": 1,
+        "socialMediaIntensity": 3,
+        "reductionIntent": 4
+      },
+      "expected": {
+        "addiction_score": 76.426004,
+        "addiction_probability": 0.907265,
+        "risk_class": 1,
+        "risk_label": "Elevated addiction risk"
+      }
+    },
+    {
+      "case_id": "dataset_row_r003",
+      "label": "Dataset sample R003",
+      "input": {
+        "dailyHours": 4,
+        "checkingFrequency": 2,
+        "beforeSleep": 3,
+        "anxiousWithoutPhone": 1,
+        "studyDistraction": 3,
+        "wasteTime": 2,
+        "socialMediaIntensity": 3,
+        "reductionIntent": 5
+      },
+      "expected": {
+        "addiction_score": 71.768609,
+        "addiction_probability": 0.953401,
+        "risk_class": 1,
+        "risk_label": "Elevated addiction risk"
+      }
+    }
+  ],
+  "notes": [
+    "The exported artifacts are intended for browser inference without a Python runtime.",
+    "All frontend predictions should be treated as educational estimates, not diagnosis.",
+    "Rows with too few answered survey fields are excluded before model training."
+  ]
+}

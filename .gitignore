@@ -3,3 +3,8 @@ dist/
 .DS_Store
 *.log
 .vite/
+.venv/
+__pycache__/
+*.pyc
+.jupyter/
+.jupyter_data/

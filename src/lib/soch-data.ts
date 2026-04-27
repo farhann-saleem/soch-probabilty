@@ -1,7 +1,16 @@
 import Papa from "papaparse";
+import {
+  defaultPredictionInput as artifactDefaultPredictionInput,
+  getLinearRegressionModel,
+  getLogisticRegressionModel,
+  predictionFields as artifactPredictionFields,
+  predictLinearScore as predictArtifactLinearScore,
+  predictLogisticProbability as predictArtifactLogisticProbability,
+} from "../../frontend_integration/modelInference";
 
 export const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5IeFvPCjoZrE8jAU1a8aURcmCQf5gSgozCKV-FJqYXMx-RfwAxI7EvGru1KmFKPFeWn7TVecgqaDK/pub?output=csv";
+const LOCAL_SNAPSHOT_URL = "/soch_survey_snapshot.csv";
 
 const columns = {
   timestamp: "Timestamp",
@@ -79,15 +88,20 @@ export interface LinearRegressionModel {
   intercept: number;
   coefficients: ModelCoefficient[];
   r2: number;
+  mae?: number;
+  rmse?: number;
   sampleSize: number;
 }
 
 export interface LogisticRegressionModel {
   bias: number;
   weights: ModelCoefficient[];
-  means: number[];
-  deviations: number[];
   accuracy: number;
+  precision?: number;
+  recall?: number;
+  f1?: number;
+  rocAuc?: number;
+  threshold?: number;
   sampleSize: number;
 }
 
@@ -230,64 +244,7 @@ const studyFrequencyOptions: SelectOption[] = [
   { code: 4, label: "Always" },
 ];
 
-export const predictionFields: PredictionFieldDefinition[] = [
-  {
-    key: "dailyHours",
-    label: "Daily phone usage",
-    helper: "How much screen time the student logs in a typical day.",
-    options: dailyHoursOptions,
-  },
-  {
-    key: "checkingFrequency",
-    label: "Checking frequency",
-    helper: "How often the phone is checked during the day.",
-    options: checkingFrequencyOptions,
-  },
-  {
-    key: "beforeSleep",
-    label: "Before-sleep use",
-    helper: "How routinely the phone shows up in the nightly routine.",
-    options: beforeSleepOptions,
-  },
-  {
-    key: "anxiousWithoutPhone",
-    label: "Anxiety without phone",
-    helper: "A proxy for emotional dependence on device access.",
-    options: [
-      { code: 0, label: "No" },
-      { code: 1, label: "Sometimes" },
-      { code: 2, label: "Yes" },
-    ],
-  },
-  {
-    key: "studyDistraction",
-    label: "Study distraction",
-    helper: "How much attention is lost to the phone during study time.",
-    options: studyFrequencyOptions,
-  },
-  {
-    key: "wasteTime",
-    label: "Feels like wasted time",
-    helper: "Whether the student believes their usage is wasting time.",
-    options: [
-      { code: 0, label: "No" },
-      { code: 1, label: "Sometimes" },
-      { code: 2, label: "Yes" },
-    ],
-  },
-  {
-    key: "socialMediaIntensity",
-    label: "Social media intensity",
-    helper: "Agreement with the idea that a lot of time is spent on social media.",
-    options: likertOptions,
-  },
-  {
-    key: "reductionIntent",
-    label: "Wants to reduce use",
-    helper: "How strongly the student wants to cut back usage.",
-    options: likertOptions,
-  },
-];
+export const predictionFields: PredictionFieldDefinition[] = artifactPredictionFields;
 
 const featureLabels = [
   "Daily phone usage",
@@ -303,13 +260,7 @@ const featureLabels = [
 type RawRow = Record<string, string>;
 
 export async function fetchSurveySnapshot(): Promise<SurveySnapshot> {
-  const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
-
-  if (!response.ok) {
-    throw new Error(`Could not load the published survey feed (${response.status}).`);
-  }
-
-  const csv = await response.text();
+  const csv = await loadSurveyCsv();
   const parsed = Papa.parse<RawRow>(csv, {
     header: true,
     skipEmptyLines: true,
@@ -317,20 +268,10 @@ export async function fetchSurveySnapshot(): Promise<SurveySnapshot> {
 
   const rows = parsed.data.map(mapRow);
   const validRows = rows.filter((row) => row.valid);
-  const completeModelRows = validRows.filter(
-    (row): row is SurveyRecord & { modelFeatures: PredictionInput } => row.modelFeatures !== null,
-  );
-
   const scoreValues = validRows.map((row) => row.addictionScore);
   const latestRows = [...validRows].sort(sortByTimestampDescending);
-  const linear = trainLinearRegression(
-    completeModelRows.map((row) => row.modelFeatures),
-    completeModelRows.map((row) => row.addictionScore),
-  );
-  const logistic = trainLogisticRegression(
-    completeModelRows.map((row) => row.modelFeatures),
-    completeModelRows.map((row) => row.riskBinary),
-  );
+  const linear = getLinearRegressionModel();
+  const logistic = getLogisticRegressionModel();
   const heavyUsers = validRows.filter((row) => codeForOption(dailyHoursOptions, row.dailyHours) === 4);
   const reductionIntentPositive = validRows.filter(
     (row) => {
@@ -419,8 +360,28 @@ export async function fetchSurveySnapshot(): Promise<SurveySnapshot> {
       linear,
       logistic,
     },
-    defaultPredictionInput: buildDefaultPredictionInput(validRows),
+    defaultPredictionInput: artifactDefaultPredictionInput,
   };
+}
+
+async function loadSurveyCsv(): Promise<string> {
+  const liveResponse = await fetch(SHEET_CSV_URL, { cache: "no-store" }).catch(() => null);
+  if (liveResponse?.ok) {
+    return liveResponse.text();
+  }
+
+  const fallbackResponse = await fetch(LOCAL_SNAPSHOT_URL, { cache: "no-store" }).catch(() => null);
+  if (fallbackResponse?.ok) {
+    return fallbackResponse.text();
+  }
+
+  if (liveResponse) {
+    throw new Error(
+      `Could not load the published survey feed (${liveResponse.status}) and the local fallback snapshot was also unavailable.`,
+    );
+  }
+
+  throw new Error("Could not load the live survey feed or the local fallback snapshot.");
 }
 
 export function simulateSampleMeans(
@@ -452,29 +413,14 @@ export function predictLinearScore(
   model: LinearRegressionModel,
   input: PredictionInput,
 ): number {
-  const values = modelInputToArray(input);
-  const score = values.reduce((sum, value, index) => {
-    const coefficient = model.coefficients[index]?.value ?? 0;
-    return sum + value * coefficient;
-  }, model.intercept);
-
-  return clamp(score, 0, 100);
+  return predictArtifactLinearScore(input);
 }
 
 export function predictLogisticProbability(
   model: LogisticRegressionModel,
   input: PredictionInput,
 ): number {
-  const values = modelInputToArray(input).map((value, index) => {
-    const deviation = model.deviations[index] === 0 ? 1 : model.deviations[index];
-    return (value - model.means[index]) / deviation;
-  });
-  const score = values.reduce((sum, value, index) => {
-    const coefficient = model.weights[index]?.value ?? 0;
-    return sum + value * coefficient;
-  }, model.bias);
-
-  return sigmoid(score);
+  return predictArtifactLogisticProbability(input);
 }
 
 function mapRow(rawRow: RawRow, index: number): SurveyRecord {
@@ -804,8 +750,6 @@ function trainLogisticRegression(
     return {
       bias: 0,
       weights: featureLabels.map((label) => ({ label, value: 0 })),
-      means: new Array(featureLabels.length).fill(0),
-      deviations: new Array(featureLabels.length).fill(1),
       accuracy: 0,
       sampleSize: 0,
     };
@@ -861,8 +805,6 @@ function trainLogisticRegression(
       label,
       value: Number(weights[index].toFixed(3)),
     })),
-    means,
-    deviations,
     accuracy: Number((accuracy / standardized.length).toFixed(3)),
     sampleSize: inputs.length,
   };

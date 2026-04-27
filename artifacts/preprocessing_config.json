@@ -1,0 +1,640 @@
+{
+  "version": "1.0.0",
+  "feature_order": [
+    "dailyHours",
+    "checkingFrequency",
+    "beforeSleep",
+    "anxiousWithoutPhone",
+    "studyDistraction",
+    "wasteTime",
+    "socialMediaIntensity",
+    "reductionIntent"
+  ],
+  "python_feature_order": [
+    "daily_hours",
+    "checking_frequency",
+    "before_sleep",
+    "anxious_without_phone",
+    "study_distraction",
+    "waste_time",
+    "social_media_intensity",
+    "reduction_intent"
+  ],
+  "default_fill_values": {
+    "dailyHours": 3,
+    "checkingFrequency": 2,
+    "beforeSleep": 3,
+    "anxiousWithoutPhone": 1,
+    "studyDistraction": 3,
+    "wasteTime": 1,
+    "socialMediaIntensity": 4,
+    "reductionIntent": 4
+  },
+  "required_columns": [
+    "timestamp",
+    "daily_hours",
+    "checking_frequency",
+    "before_sleep",
+    "anxious_without_phone",
+    "study_distraction",
+    "waste_time",
+    "social_media_intensity",
+    "reduction_intent",
+    "self_reported_addiction"
+  ],
+  "optional_score_columns": [
+    "wake_check",
+    "class_usage",
+    "sleep_affected",
+    "battery_low",
+    "reduction_attempts"
+  ],
+  "row_rules": {
+    "min_non_empty_responses": 6,
+    "max_missing_model_features": 2,
+    "min_score_weight_coverage": 0.7
+  },
+  "features": {
+    "dailyHours": {
+      "python_key": "daily_hours",
+      "label": "Daily phone usage",
+      "source_column": "daily_hours",
+      "description": "Ordinal coding for the respondent's daily phone-use duration.",
+      "allowed_codes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "default_code": 3,
+      "minimum_code": 1,
+      "maximum_code": 4,
+      "options": [
+        {
+          "code": 1,
+          "label": "Less than 2 hours"
+        },
+        {
+          "code": 2,
+          "label": "2-4 hours"
+        },
+        {
+          "code": 3,
+          "label": "4-6 hours"
+        },
+        {
+          "code": 4,
+          "label": "More than 6 hours"
+        }
+      ],
+      "label_to_code": {
+        "Less than 2 hours": 1,
+        "2-4 hours": 2,
+        "4-6 hours": 3,
+        "More than 6 hours": 4
+      },
+      "aliases": {
+        "less than 2 hours": 1,
+        "under 2 hours": 1,
+        "2-4 hours": 2,
+        "4-6 hours": 3,
+        "more than 6 hours": 4,
+        "above 6 hours": 4,
+        "6+ hours": 4
+      }
+    },
+    "checkingFrequency": {
+      "python_key": "checking_frequency",
+      "label": "Checking frequency",
+      "source_column": "checking_frequency",
+      "description": "Ordinal coding for how often the student checks the phone in a day.",
+      "allowed_codes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "default_code": 2,
+      "minimum_code": 1,
+      "maximum_code": 4,
+      "options": [
+        {
+          "code": 1,
+          "label": "Less than 10 times"
+        },
+        {
+          "code": 2,
+          "label": "10-30 times"
+        },
+        {
+          "code": 3,
+          "label": "30-60 times"
+        },
+        {
+          "code": 4,
+          "label": "More than 60 times"
+        }
+      ],
+      "label_to_code": {
+        "Less than 10 times": 1,
+        "10-30 times": 2,
+        "30-60 times": 3,
+        "More than 60 times": 4
+      },
+      "aliases": {
+        "less than 10 times": 1,
+        "below 10 times": 1,
+        "10-30 times": 2,
+        "30-60 times": 3,
+        "more than 60 times": 4,
+        "above 60 times": 4,
+        "60+ times": 4
+      }
+    },
+    "beforeSleep": {
+      "python_key": "before_sleep",
+      "label": "Before-sleep use",
+      "source_column": "before_sleep",
+      "description": "How consistently the student uses the phone before sleeping.",
+      "allowed_codes": [
+        1,
+        2,
+        3
+      ],
+      "default_code": 3,
+      "minimum_code": 1,
+      "maximum_code": 3,
+      "options": [
+        {
+          "code": 1,
+          "label": "Sometimes"
+        },
+        {
+          "code": 2,
+          "label": "Often"
+        },
+        {
+          "code": 3,
+          "label": "Every day"
+        }
+      ],
+      "label_to_code": {
+        "Sometimes": 1,
+        "Often": 2,
+        "Every day": 3
+      },
+      "aliases": {
+        "sometimes": 1,
+        "rarely": 1,
+        "occasionally": 1,
+        "often": 2,
+        "usually": 2,
+        "every day": 3,
+        "everyday": 3,
+        "daily": 3,
+        "always": 3
+      }
+    },
+    "anxiousWithoutPhone": {
+      "python_key": "anxious_without_phone",
+      "label": "Anxiety without phone",
+      "source_column": "anxious_without_phone",
+      "description": "Binary-plus-neutral coding for emotional discomfort without phone access.",
+      "allowed_codes": [
+        0,
+        1,
+        2
+      ],
+      "default_code": 1,
+      "minimum_code": 0,
+      "maximum_code": 2,
+      "options": [
+        {
+          "code": 0,
+          "label": "No"
+        },
+        {
+          "code": 1,
+          "label": "Sometimes"
+        },
+        {
+          "code": 2,
+          "label": "Yes"
+        }
+      ],
+      "label_to_code": {
+        "No": 0,
+        "Sometimes": 1,
+        "Yes": 2
+      },
+      "aliases": {
+        "no": 0,
+        "sometimes": 1,
+        "maybe": 1,
+        "yes": 2
+      }
+    },
+    "studyDistraction": {
+      "python_key": "study_distraction",
+      "label": "Study distraction",
+      "source_column": "study_distraction",
+      "description": "How strongly phone use interrupts studying.",
+      "allowed_codes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "default_code": 3,
+      "minimum_code": 1,
+      "maximum_code": 4,
+      "options": [
+        {
+          "code": 1,
+          "label": "Never"
+        },
+        {
+          "code": 2,
+          "label": "Sometimes"
+        },
+        {
+          "code": 3,
+          "label": "Often"
+        },
+        {
+          "code": 4,
+          "label": "Always"
+        }
+      ],
+      "label_to_code": {
+        "Never": 1,
+        "Sometimes": 2,
+        "Often": 3,
+        "Always": 4
+      },
+      "aliases": {
+        "never": 1,
+        "rarely": 1,
+        "sometimes": 2,
+        "often": 3,
+        "usually": 3,
+        "always": 4
+      }
+    },
+    "wasteTime": {
+      "python_key": "waste_time",
+      "label": "Feels like wasted time",
+      "source_column": "waste_time",
+      "description": "Whether the respondent believes phone use wastes time.",
+      "allowed_codes": [
+        0,
+        1,
+        2
+      ],
+      "default_code": 1,
+      "minimum_code": 0,
+      "maximum_code": 2,
+      "options": [
+        {
+          "code": 0,
+          "label": "No"
+        },
+        {
+          "code": 1,
+          "label": "Sometimes"
+        },
+        {
+          "code": 2,
+          "label": "Yes"
+        }
+      ],
+      "label_to_code": {
+        "No": 0,
+        "Sometimes": 1,
+        "Yes": 2
+      },
+      "aliases": {
+        "no": 0,
+        "sometimes": 1,
+        "maybe": 1,
+        "yes": 2
+      }
+    },
+    "socialMediaIntensity": {
+      "python_key": "social_media_intensity",
+      "label": "Social media intensity",
+      "source_column": "social_media_intensity",
+      "description": "Likert-coded intensity of social-media use.",
+      "allowed_codes": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default_code": 4,
+      "minimum_code": 1,
+      "maximum_code": 5,
+      "options": [
+        {
+          "code": 1,
+          "label": "Strongly Disagree"
+        },
+        {
+          "code": 2,
+          "label": "Disagree"
+        },
+        {
+          "code": 3,
+          "label": "Neutral"
+        },
+        {
+          "code": 4,
+          "label": "Agree"
+        },
+        {
+          "code": 5,
+          "label": "Strongly Agree"
+        }
+      ],
+      "label_to_code": {
+        "Strongly Disagree": 1,
+        "Disagree": 2,
+        "Neutral": 3,
+        "Agree": 4,
+        "Strongly Agree": 5
+      },
+      "aliases": {
+        "strongly disagree": 1,
+        "disagree": 2,
+        "no": 2,
+        "neutral": 3,
+        "sometimes": 3,
+        "agree": 4,
+        "yes": 4,
+        "strongly agree": 5,
+        "more than 5 hours": 5
+      }
+    },
+    "reductionIntent": {
+      "python_key": "reduction_intent",
+      "label": "Reduction intent",
+      "source_column": "reduction_intent",
+      "description": "Likert-coded desire to reduce mobile-phone use.",
+      "allowed_codes": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default_code": 4,
+      "minimum_code": 1,
+      "maximum_code": 5,
+      "options": [
+        {
+          "code": 1,
+          "label": "Strongly Disagree"
+        },
+        {
+          "code": 2,
+          "label": "Disagree"
+        },
+        {
+          "code": 3,
+          "label": "Neutral"
+        },
+        {
+          "code": 4,
+          "label": "Agree"
+        },
+        {
+          "code": 5,
+          "label": "Strongly Agree"
+        }
+      ],
+      "label_to_code": {
+        "Strongly Disagree": 1,
+        "Disagree": 2,
+        "Neutral": 3,
+        "Agree": 4,
+        "Strongly Agree": 5
+      },
+      "aliases": {
+        "strongly disagree": 1,
+        "disagree": 2,
+        "neutral": 3,
+        "sometimes": 3,
+        "agree": 4,
+        "yes": 4,
+        "strongly agree": 5
+      }
+    }
+  },
+  "column_aliases": {
+    "timestamp": [
+      "timestamp"
+    ],
+    "age_group": [
+      "what_is_your_age_group"
+    ],
+    "gender": [
+      "what_is_your_gender"
+    ],
+    "education_level": [
+      "what_is_your_education_level"
+    ],
+    "daily_hours": [
+      "how_many_hours_do_you_use_your_mobile_phone_daily"
+    ],
+    "main_purpose": [
+      "what_is_your_main_purpose_for_using_a_mobile_phone"
+    ],
+    "checking_frequency": [
+      "how_often_do_you_check_your_phone_in_a_day"
+    ],
+    "wake_check": [
+      "do_you_check_your_phone_immediately_after_waking_up"
+    ],
+    "before_sleep": [
+      "how_often_do_you_use_your_phone_before_sleeping"
+    ],
+    "anxious_without_phone": [
+      "do_you_feel_anxious_without_your_phone"
+    ],
+    "study_distraction": [
+      "how_often_do_you_feel_distracted_by_your_phone_while_studying"
+    ],
+    "class_usage": [
+      "do_you_use_your_phone_during_class_lecture"
+    ],
+    "self_reported_addiction": [
+      "do_you_think_you_are_addicted_to_your_phone"
+    ],
+    "sleep_affected": [
+      "has_phone_usage_affected_your_sleep"
+    ],
+    "academic_performance": [
+      "has_mobile_phone_usage_affected_your_academic_performance"
+    ],
+    "reduction_attempts": [
+      "how_often_do_you_try_to_reduce_your_phone_usage"
+    ],
+    "favorite_app": [
+      "which_app_do_you_use_the_most"
+    ],
+    "waste_time": [
+      "do_you_feel_you_waste_time_on_your_phone"
+    ],
+    "during_meals": [
+      "how_often_do_you_use_your_phone_while_eating"
+    ],
+    "battery_low": [
+      "i_feel_uncomfortable_when_my_phone_battery_is_low"
+    ],
+    "online_communication": [
+      "i_prefer_online_communication_over_face_to_face_interaction"
+    ],
+    "social_media_intensity": [
+      "i_spend_a_lot_of_time_on_social_media"
+    ],
+    "productive_use": [
+      "i_use_my_phone_for_productive_purposes_such_as_study_or_work"
+    ],
+    "reduction_intent": [
+      "i_would_like_to_reduce_my_mobile_phone_usage"
+    ],
+    "problems": [
+      "what_problems_do_you_face_due_to_excessive_use_of_mobile_phones"
+    ]
+  },
+  "score_definition": {
+    "score_name": "Addiction Score",
+    "range": [
+      0,
+      100
+    ],
+    "components": [
+      {
+        "feature_key": "daily_hours",
+        "frontend_key": "dailyHours",
+        "label": "Daily phone usage",
+        "weight": 0.18,
+        "minimum_code": 1,
+        "maximum_code": 4,
+        "rationale": "Long daily usage increases compulsive exposure time."
+      },
+      {
+        "feature_key": "checking_frequency",
+        "frontend_key": "checkingFrequency",
+        "label": "Checking frequency",
+        "weight": 0.14,
+        "minimum_code": 1,
+        "maximum_code": 4,
+        "rationale": "Frequent checking is a strong behavioral marker of dependence."
+      },
+      {
+        "feature_key": "before_sleep",
+        "frontend_key": "beforeSleep",
+        "label": "Before-sleep use",
+        "weight": 0.1,
+        "minimum_code": 1,
+        "maximum_code": 3,
+        "rationale": "Night-time use is linked to habit reinforcement and poorer self-control."
+      },
+      {
+        "feature_key": "wake_check",
+        "frontend_key": null,
+        "label": "Wake-up checking",
+        "weight": 0.07,
+        "minimum_code": 1,
+        "maximum_code": 4,
+        "rationale": "Immediate morning checking signals routine-driven dependence."
+      },
+      {
+        "feature_key": "anxious_without_phone",
+        "frontend_key": "anxiousWithoutPhone",
+        "label": "Anxiety without phone",
+        "weight": 0.1,
+        "minimum_code": 0,
+        "maximum_code": 2,
+        "rationale": "Anxiety without the phone reflects emotional attachment to access."
+      },
+      {
+        "feature_key": "study_distraction",
+        "frontend_key": "studyDistraction",
+        "label": "Study distraction",
+        "weight": 0.12,
+        "minimum_code": 1,
+        "maximum_code": 4,
+        "rationale": "Distraction during study indicates direct interference with academic focus."
+      },
+      {
+        "feature_key": "class_usage",
+        "frontend_key": null,
+        "label": "Class usage",
+        "weight": 0.07,
+        "minimum_code": 1,
+        "maximum_code": 4,
+        "rationale": "Using the phone during class signals poor control in restricted settings."
+      },
+      {
+        "feature_key": "sleep_affected",
+        "frontend_key": null,
+        "label": "Sleep affected",
+        "weight": 0.08,
+        "minimum_code": 0,
+        "maximum_code": 2,
+        "rationale": "Sleep impact is a meaningful downstream consequence of excessive use."
+      },
+      {
+        "feature_key": "waste_time",
+        "frontend_key": "wasteTime",
+        "label": "Feels like wasted time",
+        "weight": 0.07,
+        "minimum_code": 0,
+        "maximum_code": 2,
+        "rationale": "Perceived time wastage captures self-awareness of unproductive use."
+      },
+      {
+        "feature_key": "battery_low",
+        "frontend_key": null,
+        "label": "Battery discomfort",
+        "weight": 0.03,
+        "minimum_code": 1,
+        "maximum_code": 5,
+        "rationale": "Discomfort when the battery is low reflects attachment to constant access."
+      },
+      {
+        "feature_key": "social_media_intensity",
+        "frontend_key": "socialMediaIntensity",
+        "label": "Social media intensity",
+        "weight": 0.02,
+        "minimum_code": 1,
+        "maximum_code": 5,
+        "rationale": "Heavy social-media involvement often accompanies repeated phone checking."
+      },
+      {
+        "feature_key": "reduction_attempts",
+        "frontend_key": null,
+        "label": "Reduction attempts",
+        "weight": 0.02,
+        "minimum_code": 1,
+        "maximum_code": 4,
+        "rationale": "Frequent attempts to cut down can indicate loss of control over usage."
+      }
+    ]
+  },
+  "risk_definition": {
+    "primary_score_threshold": 60.0,
+    "support_window_start": 55.0,
+    "supportive_self_report_labels": [
+      "Yes",
+      "Maybe"
+    ],
+    "label_mapping": {
+      "0": "Lower addiction risk",
+      "1": "Elevated addiction risk"
+    }
+  }
+}
